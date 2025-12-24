@@ -1,6 +1,7 @@
 import React from 'react';
-import { Building2 } from 'lucide-react';
+import { Building2, AlertTriangle } from 'lucide-react';
 import { calcularAreaTotal } from '../utils/helpers';
+import { tarifas } from '../data/tarifas';
 
 function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto }) {
   const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
@@ -14,15 +15,64 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
     }, 0);
   }, [datosProyecto.alturasNiveles]);
 
+  // Determinar límite de niveles según sistema y zona
+  const obtenerLimiteNiveles = () => {
+    if (!sistemaSeleccionado) return null;
+    
+    const zona = parseInt(datosProyecto.zona) || 1;
+    
+    switch(sistemaSeleccionado) {
+      case 'mamposteria_formaleta':
+        return { max: 5, mensaje: 'Mampostería con formaleta está limitada a 5 niveles máximo' };
+      
+      case 'porticos_intermedios_hormigon':
+        return { max: 12, mensaje: 'Pórticos intermedios de hormigón están limitados a 12 niveles máximo' };
+      
+      case 'porticos_especiales_hormigon':
+        return null; // Sin límite
+      
+      case 'sistema_dual_hormigon':
+        const maxDualHormigon = zona === 1 ? 4 : 6;
+        return { 
+          max: maxDualHormigon, 
+          mensaje: `Sistema dual de hormigón en zona ${zona} está limitado a ${maxDualHormigon} niveles máximo` 
+        };
+      
+      case 'porticos_intermedios_acero':
+        return { max: 4, mensaje: 'Pórticos intermedios de acero están limitados a 4 niveles máximo' };
+      
+      case 'porticos_especiales_acero':
+        return null; // Sin límite de niveles, solo de altura
+      
+      case 'sistema_dual_metalico':
+        const maxDualMetalico = zona === 1 ? 4 : 6;
+        return { 
+          max: maxDualMetalico, 
+          mensaje: `Sistema dual metálico en zona ${zona} está limitado a ${maxDualMetalico} niveles máximo` 
+        };
+      
+      default:
+        return null;
+    }
+  };
+
+  const limiteNiveles = obtenerLimiteNiveles();
+  const excedeLimite = limiteNiveles && niveles > limiteNiveles.max;
+
   const handleNivelesChange = (valor) => {
     const nivelesNum = parseInt(valor) || 0;
     setDatosProyecto(prev => {
       const nuevasAreas = {};
       const nuevasAlturas = {};
-      for (let i = 1; i <= nivelesNum; i++) {
-        nuevasAreas[i] = prev.areasNiveles[i] || '';
-        nuevasAlturas[i] = prev.alturasNiveles?.[i] || '';
+      
+      // Solo crear campos si no excede el límite
+      if (!limiteNiveles || nivelesNum <= limiteNiveles.max) {
+        for (let i = 1; i <= nivelesNum; i++) {
+          nuevasAreas[i] = prev.areasNiveles[i] || '';
+          nuevasAlturas[i] = prev.alturasNiveles?.[i] || '';
+        }
       }
+      
       return {
         ...prev,
         niveles: valor,
@@ -76,13 +126,41 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             type="number"
             value={datosProyecto.niveles}
             onChange={(e) => handleNivelesChange(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+              excedeLimite ? 'border-red-500 bg-red-50' : 'border-gray-300'
+            }`}
             placeholder="Ej: 3"
             min="1"
           />
+          {limiteNiveles && (
+            <p className="text-xs text-gray-500 mt-1">
+              Máximo permitido: {limiteNiveles.max} niveles
+            </p>
+          )}
         </div>
 
-        {niveles > 0 && (
+        {/* Alerta si excede el límite */}
+        {excedeLimite && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-red-700">
+                  Límite de niveles excedido
+                </p>
+                <p className="text-sm text-red-600 mt-1">
+                  {limiteNiveles.mensaje}
+                </p>
+                <p className="text-xs text-red-500 mt-2">
+                  Por favor, reduce el número de niveles a {limiteNiveles.max} o menos para continuar.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Solo mostrar campos si no excede el límite */}
+        {niveles > 0 && !excedeLimite && (
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
               {requiereAlturaPorNivel ? 'Área y Altura por nivel' : 'Área por nivel (m²)'}
@@ -175,64 +253,63 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
           />
         </div>
 
- {(sistemaSeleccionado === 'sistema_dual_hormigon' || 
-  sistemaSeleccionado === 'sistema_dual_metalico' || // ← AGREGAR ESTO
-  sistemaSeleccionado === 'porticos_intermedios_acero' ||
-  sistemaSeleccionado === 'porticos_especiales_acero') && (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Zona sísmica
-    </label>
-    <select
-      value={datosProyecto.zona}
-      onChange={(e) => handleDatosChange('zona', e.target.value)}
-      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-    >
-      <option value="1">Zona 1</option>
-      <option value="2">Zona 2</option>
-    </select>
-  </div>
-)}
+        {(sistemaSeleccionado === 'sistema_dual_hormigon' || 
+          sistemaSeleccionado === 'sistema_dual_metalico' ||
+          sistemaSeleccionado === 'porticos_intermedios_acero' ||
+          sistemaSeleccionado === 'porticos_especiales_acero') && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Zona sísmica
+            </label>
+            <select
+              value={datosProyecto.zona}
+              onChange={(e) => handleDatosChange('zona', e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="1">Zona 1</option>
+              <option value="2">Zona 2</option>
+            </select>
+          </div>
+        )}
 
-{sistemaSeleccionado === 'sistema_dual_hormigon' && (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Tipo de sistema dual
-    </label>
-    <select
-      value={datosProyecto.tipoDual}
-      onChange={(e) => handleDatosChange('tipoDual', e.target.value)}
-      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-    >
-      <option value="intermedia">Intermedia</option>
-      <option value="especial">Especial</option>
-    </select>
-  </div>
-)}
+        {sistemaSeleccionado === 'sistema_dual_hormigon' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tipo de sistema dual
+            </label>
+            <select
+              value={datosProyecto.tipoDual}
+              onChange={(e) => handleDatosChange('tipoDual', e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="intermedia">Intermedia</option>
+              <option value="especial">Especial</option>
+            </select>
+          </div>
+        )}
 
-{/* AGREGAR ESTE BLOQUE NUEVO */}
-{sistemaSeleccionado === 'sistema_dual_metalico' && (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Tipo de sistema dual metálico
-    </label>
-    <select
-      value={datosProyecto.tipoMetalico}
-      onChange={(e) => handleDatosChange('tipoMetalico', e.target.value)}
-      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-    >
-      <option value="porticos_arriostramiento">
-        Pórticos de Acero con Arriostramiento
-      </option>
-      <option value="muros_ordinarios">
-        Muros Ordinarios de Hormigón Armado
-      </option>
-      <option value="muros_especiales">
-        Muros Especiales de Hormigón Armado
-      </option>
-    </select>
-  </div>
-)}
+        {sistemaSeleccionado === 'sistema_dual_metalico' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tipo de sistema dual metálico
+            </label>
+            <select
+              value={datosProyecto.tipoMetalico}
+              onChange={(e) => handleDatosChange('tipoMetalico', e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="porticos_arriostramiento">
+                Pórticos de Acero con Arriostramiento
+              </option>
+              <option value="muros_ordinarios">
+                Muros Ordinarios de Hormigón Armado
+              </option>
+              <option value="muros_especiales">
+                Muros Especiales de Hormigón Armado
+              </option>
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );
