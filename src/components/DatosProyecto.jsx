@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Building2, AlertTriangle } from 'lucide-react';
 import { calcularAreaTotal } from '../utils/helpers';
 import { tarifas } from '../data/tarifas';
 
 function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto }) {
+  const inputRefs = useRef({});
+
+  // Función para manejar Enter y avanzar al siguiente campo
+  const handleKeyDown = (e, currentKey, nextKey) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextKey && inputRefs.current[nextKey]) {
+        inputRefs.current[nextKey].focus();
+      }
+    }
+  };
   const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
   const niveles = parseInt(datosProyecto.niveles) || 0;
 
@@ -58,6 +69,48 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
 
   const limiteNiveles = obtenerLimiteNiveles();
   const excedeLimite = limiteNiveles && niveles > limiteNiveles.max;
+
+  // Generar la secuencia de campos para navegación
+  const generarSecuenciaCampos = () => {
+    const secuencia = ['niveles'];
+    
+    if (niveles > 0 && !excedeLimite) {
+      for (let i = 1; i <= niveles; i++) {
+        secuencia.push(`area-${i}`);
+        if (requiereAlturaPorNivel) {
+          secuencia.push(`altura-${i}`);
+        }
+      }
+    }
+    
+    secuencia.push('irregularidad', 'numPlanchas');
+    
+    if (sistemaSeleccionado === 'sistema_dual_hormigon' || 
+        sistemaSeleccionado === 'sistema_dual_metalico' ||
+        sistemaSeleccionado === 'porticos_intermedios_acero' ||
+        sistemaSeleccionado === 'porticos_especiales_acero') {
+      secuencia.push('zona');
+    }
+    
+    if (sistemaSeleccionado === 'sistema_dual_hormigon') {
+      secuencia.push('tipoDual');
+    }
+    
+    if (sistemaSeleccionado === 'sistema_dual_metalico') {
+      secuencia.push('tipoMetalico');
+    }
+    
+    return secuencia;
+  };
+
+  const obtenerSiguienteCampo = (currentKey) => {
+    const secuencia = generarSecuenciaCampos();
+    const currentIndex = secuencia.indexOf(currentKey);
+    if (currentIndex >= 0 && currentIndex < secuencia.length - 1) {
+      return secuencia[currentIndex + 1];
+    }
+    return null;
+  };
 
   const handleNivelesChange = (valor) => {
     const nivelesNum = parseInt(valor) || 0;
@@ -124,8 +177,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
           </label>
           <input
             type="number"
+            ref={(el) => inputRefs.current['niveles'] = el}
             value={datosProyecto.niveles}
             onChange={(e) => handleNivelesChange(e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'niveles', obtenerSiguienteCampo('niveles'))}
             className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
               excedeLimite ? 'border-red-500 bg-red-50' : 'border-gray-300'
             }`}
@@ -174,8 +229,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                   <div className="flex-1">
                     <input
                       type="number"
+                      ref={(el) => inputRefs.current[`area-${nivel}`] = el}
                       value={datosProyecto.areasNiveles[nivel] || ''}
                       onChange={(e) => handleAreaNivelChange(nivel, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, `area-${nivel}`, obtenerSiguienteCampo(`area-${nivel}`))}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                       placeholder="Área (m²)"
                       step="0.01"
@@ -185,8 +242,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                     <div className="flex-1">
                       <input
                         type="number"
+                        ref={(el) => inputRefs.current[`altura-${nivel}`] = el}
                         value={datosProyecto.alturasNiveles?.[nivel] || ''}
                         onChange={(e) => handleAlturaNivelChange(nivel, e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, `altura-${nivel}`, obtenerSiguienteCampo(`altura-${nivel}`))}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                         placeholder="Altura (m)"
                         step="0.1"
@@ -220,8 +279,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             Irregularidad
           </label>
           <select
+            ref={(el) => inputRefs.current['irregularidad'] = el}
             value={datosProyecto.irregularidad}
             onChange={(e) => handleDatosChange('irregularidad', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'irregularidad', obtenerSiguienteCampo('irregularidad'))}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Seleccione...</option>
@@ -245,8 +306,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
           </label>
           <input
             type="number"
+            ref={(el) => inputRefs.current['numPlanchas'] = el}
             value={datosProyecto.numPlanchas}
             onChange={(e) => handleDatosChange('numPlanchas', e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, 'numPlanchas', obtenerSiguienteCampo('numPlanchas'))}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             placeholder="Ej: 8"
             min="1"
@@ -262,8 +325,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
               Zona sísmica
             </label>
             <select
+              ref={(el) => inputRefs.current['zona'] = el}
               value={datosProyecto.zona}
               onChange={(e) => handleDatosChange('zona', e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 'zona', obtenerSiguienteCampo('zona'))}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
               <option value="1">Zona 1</option>
@@ -278,8 +343,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
               Tipo de sistema dual
             </label>
             <select
+              ref={(el) => inputRefs.current['tipoDual'] = el}
               value={datosProyecto.tipoDual}
               onChange={(e) => handleDatosChange('tipoDual', e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 'tipoDual', obtenerSiguienteCampo('tipoDual'))}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
               <option value="intermedia">Intermedia</option>
@@ -294,8 +361,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
               Tipo de sistema dual metálico
             </label>
             <select
+              ref={(el) => inputRefs.current['tipoMetalico'] = el}
               value={datosProyecto.tipoMetalico}
               onChange={(e) => handleDatosChange('tipoMetalico', e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, 'tipoMetalico', obtenerSiguienteCampo('tipoMetalico'))}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
               <option value="porticos_arriostramiento">
