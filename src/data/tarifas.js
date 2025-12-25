@@ -80,6 +80,7 @@ export const tarifas = {
   },
   porticos_especiales_acero: {
     nombre: "Pórticos Especiales de Acero",
+    zona_permitida: 1, 
     max_altura_zona1: 50,
     zona2_sin_limite: true,
     irregularidad: {

@@ -35,9 +35,6 @@ function SistemaSelector({ sistemaSeleccionado, setSistemaSeleccionado }) {
         <option value="porticos_especiales_acero">Pórticos Especiales de Acero</option>
         <option value="sistema_dual_metalico">Sistema Dual Metálico</option>
       </select>
-      <p className="text-xs text-gray-500 mt-2">
-        💡 Presiona Enter para avanzar al siguiente campo
-      </p>
     </div>
   );
 }

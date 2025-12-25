@@ -6,15 +6,6 @@ import { tarifas } from '../data/tarifas';
 function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto }) {
   const inputRefs = useRef({});
 
-  // Función para manejar Enter y avanzar al siguiente campo
-  const handleKeyDown = (e, currentKey, nextKey) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (nextKey && inputRefs.current[nextKey]) {
-        inputRefs.current[nextKey].focus();
-      }
-    }
-  };
   const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
   const niveles = parseInt(datosProyecto.niveles) || 0;
 
@@ -25,6 +16,16 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
       return sum + (parseFloat(altura) || 0);
     }, 0);
   }, [datosProyecto.alturasNiveles]);
+
+  // Función para manejar Enter y avanzar al siguiente campo
+  const handleKeyDown = (e, currentKey, nextKey) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextKey && inputRefs.current[nextKey]) {
+        inputRefs.current[nextKey].focus();
+      }
+    }
+  };
 
   // Determinar límite de niveles según sistema y zona
   const obtenerLimiteNiveles = () => {
@@ -53,7 +54,10 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
         return { max: 4, mensaje: 'Pórticos intermedios de acero están limitados a 4 niveles máximo' };
       
       case 'porticos_especiales_acero':
-        return null; // Sin límite de niveles, solo de altura
+        if (zona !== 1) {
+          return { max: 0, mensaje: 'Pórticos especiales de acero solo están permitidos en zona 1' };
+        }
+        return null; // Sin límite de niveles si está en zona 1
       
       case 'sistema_dual_metalico':
         const maxDualMetalico = zona === 1 ? 4 : 6;
@@ -67,8 +71,96 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
     }
   };
 
+  // Validación de zona sísmica
+  const obtenerErrorZona = () => {
+    if (!datosProyecto.zona || !sistemaSeleccionado) return null;
+    
+    const zona = parseInt(datosProyecto.zona);
+    
+    if (sistemaSeleccionado === 'porticos_intermedios_acero' && zona !== 2) {
+      return 'Pórticos intermedios de acero solo permitidos en zona 2';
+    }
+    
+    if (sistemaSeleccionado === 'porticos_especiales_acero' && zona !== 1) {
+      return 'Pórticos especiales de acero solo permitidos en zona 1';
+    }
+    
+    return null;
+  };
+
+  // Calcular altura acumulada hasta un nivel específico
+  const calcularAlturaAcumulada = (hastaNivel) => {
+    let suma = 0;
+    for (let i = 1; i <= hastaNivel; i++) {
+      const altura = parseFloat(datosProyecto.alturasNiveles?.[i]);
+      if (altura) {
+        suma += altura;
+      }
+    }
+    return suma;
+  };
+
+  // Determinar si se excedió el límite de altura y en qué nivel
+  const obtenerEstadoAltura = () => {
+    const zona = parseInt(datosProyecto.zona) || 1;
+    
+    // Caso 1: Pórticos especiales de acero - límite de altura total (50m en zona 1)
+    if (sistemaSeleccionado === 'porticos_especiales_acero' && zona === 1) {
+      const LIMITE_TOTAL = 50;
+      
+      for (let i = 1; i <= niveles; i++) {
+        const alturaAcum = calcularAlturaAcumulada(i);
+        if (alturaAcum > LIMITE_TOTAL) {
+          return { 
+            excedido: true, 
+            nivelExcedido: i, 
+            alturaAcum,
+            tipo: 'total',
+            limite: LIMITE_TOTAL
+          };
+        }
+      }
+    }
+    
+    // Caso 2: Pórticos intermedios de acero - límite por nivel individual (3m cada uno)
+    if (sistemaSeleccionado === 'porticos_intermedios_acero') {
+      const LIMITE_INDIVIDUAL = 3;
+      
+      for (let i = 1; i <= niveles; i++) {
+        const altura = parseFloat(datosProyecto.alturasNiveles?.[i]);
+        if (altura && altura > LIMITE_INDIVIDUAL) {
+          return { 
+            excedido: true, 
+            nivelExcedido: i, 
+            alturaIndividual: altura,
+            tipo: 'individual',
+            limite: LIMITE_INDIVIDUAL
+          };
+        }
+      }
+    }
+    
+    return { excedido: false, nivelExcedido: null, tipo: null };
+  };
+
+  // Determinar si un campo de altura debe estar deshabilitado
+  const debeDeshabilitarAltura = (nivel) => {
+    if (!estadoAltura.excedido) return false;
+    
+    // Deshabilitar niveles posteriores al que excedió el límite
+    // y que aún no tienen valor
+    if (nivel > estadoAltura.nivelExcedido) {
+      const tieneValor = datosProyecto.alturasNiveles?.[nivel];
+      return !tieneValor || tieneValor === '';
+    }
+    
+    return false;
+  };
+
   const limiteNiveles = obtenerLimiteNiveles();
   const excedeLimite = limiteNiveles && niveles > limiteNiveles.max;
+  const errorZona = obtenerErrorZona();
+  const estadoAltura = obtenerEstadoAltura();
 
   // Generar la secuencia de campos para navegación
   const generarSecuenciaCampos = () => {
@@ -246,7 +338,12 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                         value={datosProyecto.alturasNiveles?.[nivel] || ''}
                         onChange={(e) => handleAlturaNivelChange(nivel, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(e, `altura-${nivel}`, obtenerSiguienteCampo(`altura-${nivel}`))}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        disabled={debeDeshabilitarAltura(nivel)}
+                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+                          debeDeshabilitarAltura(nivel) 
+                            ? 'bg-gray-100 cursor-not-allowed border-gray-300' 
+                            : 'border-gray-300'
+                        }`}
                         placeholder="Altura (m)"
                         step="0.1"
                       />
@@ -271,6 +368,40 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                 </div>
               )}
             </div>
+
+            {/* Alerta cuando se excede la altura permitida */}
+            {requiereAlturaPorNivel && estadoAltura.excedido && (
+              <div className="mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-red-700">
+                      Límite de altura excedido
+                    </p>
+                    {estadoAltura.tipo === 'total' && (
+                      <>
+                        <p className="text-sm text-red-600 mt-1">
+                          Altura acumulada al nivel {estadoAltura.nivelExcedido}: {estadoAltura.alturaAcum.toFixed(2)}m
+                        </p>
+                        <p className="text-xs text-red-500 mt-1">
+                          Límite máximo para zona 1: {estadoAltura.limite}m. Los campos posteriores han sido deshabilitados.
+                        </p>
+                      </>
+                    )}
+                    {estadoAltura.tipo === 'individual' && (
+                      <>
+                        <p className="text-sm text-red-600 mt-1">
+                          Nivel {estadoAltura.nivelExcedido}: {estadoAltura.alturaIndividual.toFixed(2)}m
+                        </p>
+                        <p className="text-xs text-red-500 mt-1">
+                          Límite máximo por nivel: {estadoAltura.limite}m. Los campos posteriores han sido deshabilitados.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -334,6 +465,12 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
               <option value="1">Zona 1</option>
               <option value="2">Zona 2</option>
             </select>
+            {errorZona && (
+              <div className="mt-2 text-sm text-red-600 flex items-start gap-1">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{errorZona}</span>
+              </div>
+            )}
           </div>
         )}
 

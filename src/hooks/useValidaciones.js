@@ -29,7 +29,6 @@ export function useValidaciones(sistemaSeleccionado, datosProyecto) {
     }
 
     // Validación sistema dual hormigón
-// Validación sistema dual hormigón
     if (sistemaSeleccionado === 'sistema_dual_hormigon') {
       const maxNiveles = zona === 1 ? 4 : 6;
       if (niveles > maxNiveles) {
@@ -37,7 +36,6 @@ export function useValidaciones(sistemaSeleccionado, datosProyecto) {
       }
     }
 
-    // AGREGAR ESTE BLOQUE NUEVO
     // Validación sistema dual metálico
     if (sistemaSeleccionado === 'sistema_dual_metalico') {
       const maxNiveles = zona === 1 ? 4 : 6;
@@ -46,27 +44,14 @@ export function useValidaciones(sistemaSeleccionado, datosProyecto) {
       }
     }
 
-    // Validación pórticos intermedios acero
+    // Validación pórticos intermedios acero - solo límite de niveles
     if (sistemaSeleccionado === 'porticos_intermedios_acero') {
-      if (zona !== 2) {
-        errores.push('Pórticos intermedios de acero solo permitidos en zona 2');
-      }
       if (niveles > 4) {
         errores.push(`Pórticos intermedios de acero limitados a 4 niveles. Actual: ${niveles}`);
       }
-      
-      // Validar altura por nivel (máximo 3m cada uno)
-      if (datosProyecto.alturasNiveles) {
-        Object.entries(datosProyecto.alturasNiveles).forEach(([nivel, altura]) => {
-          const alturaNum = parseFloat(altura);
-          if (alturaNum > 3) {
-            errores.push(`Nivel ${nivel}: altura máxima es 3m. Actual: ${alturaNum}m`);
-          }
-        });
-      }
     }
 
-    // Validación pórticos especiales acero
+    // Validación pórticos especiales acero - solo altura total
     if (sistemaSeleccionado === 'porticos_especiales_acero') {
       // Calcular altura total
       let alturaTotal = 0;
