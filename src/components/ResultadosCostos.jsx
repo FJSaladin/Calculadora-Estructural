@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Calculator } from 'lucide-react';
+import { CheckCircle2, Calculator, AlertCircle } from 'lucide-react';
 
 function ResultadosCostos({ sistemaSeleccionado, calculos }) {
   if (!sistemaSeleccionado) {
@@ -14,7 +14,17 @@ function ResultadosCostos({ sistemaSeleccionado, calculos }) {
   }
 
   if (!calculos) {
-    return null;
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+        <AlertCircle className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+        <p className="text-gray-700 text-lg font-semibold mb-2">
+          Complete todos los campos requeridos
+        </p>
+        <p className="text-gray-500 text-sm">
+          Asegúrese de llenar todos los datos del proyecto para ver el presupuesto
+        </p>
+      </div>
+    );
   }
 
   return (

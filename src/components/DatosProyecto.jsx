@@ -3,7 +3,12 @@ import { Building2, AlertTriangle } from 'lucide-react';
 import { calcularAreaTotal } from '../utils/helpers';
 import { tarifas } from '../data/tarifas';
 
-function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto }) {
+function DatosProyecto({ 
+  sistemaSeleccionado, 
+  datosProyecto, 
+  setDatosProyecto, 
+  validacionCampos  // AGREGAR
+}) {
   const inputRefs = useRef({});
 
   const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
@@ -157,6 +162,14 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
     return false;
   };
 
+  // Validar que el valor sea un número positivo válido
+  const validarNumeroPositivo = (valor) => {
+    if (valor === '') return '';
+    const num = parseFloat(valor);
+    if (isNaN(num) || num < 0) return '';
+    return valor;
+  };
+
   const limiteNiveles = obtenerLimiteNiveles();
   const excedeLimite = limiteNiveles && niveles > limiteNiveles.max;
   const errorZona = obtenerErrorZona();
@@ -205,7 +218,9 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
   };
 
   const handleNivelesChange = (valor) => {
-    const nivelesNum = parseInt(valor) || 0;
+    const valorValidado = validarNumeroPositivo(valor);
+    const nivelesNum = parseInt(valorValidado) || 0;
+    
     setDatosProyecto(prev => {
       const nuevasAreas = {};
       const nuevasAlturas = {};
@@ -220,7 +235,7 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
       
       return {
         ...prev,
-        niveles: valor,
+        niveles: valorValidado,
         areasNiveles: nuevasAreas,
         alturasNiveles: nuevasAlturas
       };
@@ -228,26 +243,32 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
   };
 
   const handleAreaNivelChange = (nivel, valor) => {
+    const valorValidado = validarNumeroPositivo(valor);
     setDatosProyecto(prev => ({
       ...prev,
       areasNiveles: {
         ...prev.areasNiveles,
-        [nivel]: valor
+        [nivel]: valorValidado
       }
     }));
   };
 
   const handleAlturaNivelChange = (nivel, valor) => {
+    const valorValidado = validarNumeroPositivo(valor);
     setDatosProyecto(prev => ({
       ...prev,
       alturasNiveles: {
         ...prev.alturasNiveles,
-        [nivel]: valor
+        [nivel]: valorValidado
       }
     }));
   };
 
   const handleDatosChange = (campo, valor) => {
+    // Validar solo campos numéricos
+    if (campo === 'numPlanchas') {
+      valor = validarNumeroPositivo(valor);
+    }
     setDatosProyecto(prev => ({ ...prev, [campo]: valor }));
   };
 
@@ -279,6 +300,11 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             placeholder="Ej: 3"
             min="1"
           />
+          {validacionCampos?.camposVacios.niveles && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios.niveles}
+  </p>
+)}
           {limiteNiveles && (
             <p className="text-xs text-gray-500 mt-1">
               Máximo permitido: {limiteNiveles.max} niveles
@@ -328,7 +354,13 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                       placeholder="Área (m²)"
                       step="0.01"
+                      min="0"
                     />
+                    {validacionCampos?.camposVacios[`area-${nivel}`] && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios[`area-${nivel}`]}
+  </p>
+)}
                   </div>
                   {requiereAlturaPorNivel && (
                     <div className="flex-1">
@@ -346,7 +378,13 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
                         }`}
                         placeholder="Altura (m)"
                         step="0.1"
+                        min="0"
                       />
+                      {validacionCampos?.camposVacios[`altura-${nivel}`] && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios[`altura-${nivel}`]}
+  </p>
+)}
                     </div>
                   )}
                 </div>
@@ -416,6 +454,7 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             onKeyDown={(e) => handleKeyDown(e, 'irregularidad', obtenerSiguienteCampo('irregularidad'))}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
           >
+            
             <option value="">Seleccione...</option>
             <option value="0">0% - Regular</option>
             <option value="20">20% - Irregularidad baja</option>
@@ -424,6 +463,11 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             <option value="80">80% - Irregularidad muy alta</option>
             <option value="100">100% - Irregularidad máxima</option>
           </select>
+          {validacionCampos?.camposVacios.irregularidad && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios.irregularidad}
+  </p>
+)}
           {datosProyecto.irregularidad >= 40 && (
             <p className="text-sm text-amber-600 mt-1">
               ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIBE
@@ -443,8 +487,13 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
             onKeyDown={(e) => handleKeyDown(e, 'numPlanchas', obtenerSiguienteCampo('numPlanchas'))}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             placeholder="Ej: 8"
-            min="1"
+            min="0"
           />
+          {validacionCampos?.camposVacios.numPlanchas && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios.numPlanchas}
+  </p>
+)}
         </div>
 
         {(sistemaSeleccionado === 'sistema_dual_hormigon' || 
@@ -465,6 +514,11 @@ function DatosProyecto({ sistemaSeleccionado, datosProyecto, setDatosProyecto })
               <option value="1">Zona 1</option>
               <option value="2">Zona 2</option>
             </select>
+            {validacionCampos?.camposVacios.zona && (
+  <p className="text-xs text-red-600 mt-1">
+    {validacionCampos.camposVacios.zona}
+  </p>
+)}
             {errorZona && (
               <div className="mt-2 text-sm text-red-600 flex items-start gap-1">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />

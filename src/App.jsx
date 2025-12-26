@@ -6,6 +6,7 @@ import ServiciosMIBE from './components/ServiciosMIBE';
 import Validaciones from './components/Validaciones';
 import ResultadosCostos from './components/ResultadosCostos';
 import { useValidaciones } from './hooks/useValidaciones';
+import { useValidacionCampos } from './hooks/useValidacionCampos';
 import { useCalculos } from './hooks/useCalculos';
 
 function App() {
@@ -20,12 +21,18 @@ function App() {
     alturaNivel: '',
     numPlanchas: '',
     tipoDual: 'intermedia',
-     tipoMetalico: 'porticos_arriostramiento',
+    tipoMetalico: 'porticos_arriostramiento',
   });
   const [gestionMIBE, setGestionMIBE] = useState(false);
 
   const validaciones = useValidaciones(sistemaSeleccionado, datosProyecto);
-  const calculos = useCalculos(sistemaSeleccionado, datosProyecto, gestionMIBE, validaciones.valido);
+  const validacionCampos = useValidacionCampos(sistemaSeleccionado, datosProyecto);
+  const calculos = useCalculos(
+    sistemaSeleccionado, 
+    datosProyecto, 
+    gestionMIBE, 
+    validaciones.valido && validacionCampos.todosCompletos
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -45,6 +52,7 @@ function App() {
                   sistemaSeleccionado={sistemaSeleccionado}
                   datosProyecto={datosProyecto}
                   setDatosProyecto={setDatosProyecto}
+                  validacionCampos={validacionCampos}
                 />
                 
                 <ServiciosMIBE
