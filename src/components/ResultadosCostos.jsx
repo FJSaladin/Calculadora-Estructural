@@ -42,7 +42,7 @@ function ResultadosCostos({ sistemaSeleccionado, calculos }) {
               <p className="text-sm text-gray-500">{item.detalle}</p>
             </div>
             <p className="font-semibold text-gray-800">
-              DOP {item.monto.toLocaleString()}
+              DOP {item.monto.toLocaleString('en-US')}
             </p>
           </div>
         ))}
@@ -52,7 +52,7 @@ function ResultadosCostos({ sistemaSeleccionado, calculos }) {
         <div className="flex justify-between items-center">
           <p className="text-2xl font-bold text-gray-800">TOTAL NETO</p>
           <p className="text-3xl font-bold text-indigo-600">
-            DOP {calculos.subtotal.toLocaleString()}
+            DOP {calculos.subtotal.toLocaleString('en-US')}
           </p>
         </div>
         <p className="text-sm text-gray-500 mt-2">

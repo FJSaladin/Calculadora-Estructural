@@ -48,7 +48,7 @@ function calcularGestionDictamen(tamanoProyecto) {
   return costos[tamanoProyecto] || 20000;
 }
 
-export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIBE, esValido) {
+export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVE, esValido) {
   return useMemo(() => {
     const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
     
@@ -181,14 +181,14 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIBE, esV
       });
     }
 
-    // Gestión del MIBE
-    if (gestionMIBE) {
+    // Gestión del MIVE
+    if (gestionMIVE) {
       // Memoria de cálculo (20,000 para sistema dual metálico, 15,000 para el resto)
       const costoMemoria = sistemaSeleccionado === 'sistema_dual_metalico' ? 20000 : 15000;
       resultado.memoria = costoMemoria;
       resultado.detalles.push({
         concepto: 'Memoria de cálculo',
-        detalle: 'Servicio MIBE',
+        detalle: '',
         monto: costoMemoria
       });
 
@@ -207,5 +207,5 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIBE, esV
                         resultado.gestionDictamen;
 
     return resultado;
-  }, [sistemaSeleccionado, datosProyecto, gestionMIBE, esValido]);
+  }, [sistemaSeleccionado, datosProyecto, gestionMIVE, esValido]);
 }

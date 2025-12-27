@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import SistemaSelector from './components/SistemaSelector';
 import DatosProyecto from './components/DatosProyecto';
-import ServiciosMIBE from './components/ServiciosMIBE';
+import ServiciosMIVE from './components/ServiciosMIVE';
 import Validaciones from './components/Validaciones';
 import ResultadosCostos from './components/ResultadosCostos';
 import { useValidaciones } from './hooks/useValidaciones';
@@ -23,14 +23,14 @@ function App() {
     tipoDual: 'intermedia',
     tipoMetalico: 'porticos_arriostramiento',
   });
-  const [gestionMIBE, setGestionMIBE] = useState(false);
+  const [gestionMIVE, setGestionMIVE] = useState(false);
 
   const validaciones = useValidaciones(sistemaSeleccionado, datosProyecto);
   const validacionCampos = useValidacionCampos(sistemaSeleccionado, datosProyecto);
   const calculos = useCalculos(
     sistemaSeleccionado, 
     datosProyecto, 
-    gestionMIBE, 
+    gestionMIVE, 
     validaciones.valido && validacionCampos.todosCompletos
   );
 
@@ -55,9 +55,9 @@ function App() {
                   validacionCampos={validacionCampos}
                 />
                 
-                <ServiciosMIBE
-                  gestionMIBE={gestionMIBE}
-                  setGestionMIBE={setGestionMIBE}
+                <ServiciosMIVE
+                  gestionMIVE={gestionMIVE}
+                  setGestionMIVE={setGestionMIVE}
                 />
               </>
             )}

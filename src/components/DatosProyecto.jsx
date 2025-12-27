@@ -324,9 +324,7 @@ function DatosProyecto({
                 <p className="text-sm text-red-600 mt-1">
                   {limiteNiveles.mensaje}
                 </p>
-                <p className="text-xs text-red-500 mt-2">
-                  Por favor, reduce el número de niveles a {limiteNiveles.max} o menos para continuar.
-                </p>
+                
               </div>
             </div>
           </div>
@@ -470,7 +468,7 @@ function DatosProyecto({
 )}
           {datosProyecto.irregularidad >= 40 && (
             <p className="text-sm text-amber-600 mt-1">
-              ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIBE
+              ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIVE
             </p>
           )}
         </div>
