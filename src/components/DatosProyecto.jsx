@@ -441,37 +441,55 @@ function DatosProyecto({
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Irregularidad
-          </label>
-          <select
-            ref={(el) => inputRefs.current['irregularidad'] = el}
-            value={datosProyecto.irregularidad}
-            onChange={(e) => handleDatosChange('irregularidad', e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, 'irregularidad', obtenerSiguienteCampo('irregularidad'))}
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          >
-            
-            <option value="">Seleccione...</option>
-            <option value="0">0% - Regular</option>
-            <option value="20">20% - Irregularidad baja</option>
-            <option value="40">40% - Irregularidad moderada</option>
-            <option value="60">60% - Irregularidad alta</option>
-            <option value="80">80% - Irregularidad muy alta</option>
-            <option value="100">100% - Irregularidad máxima</option>
-          </select>
-          {validacionCampos?.camposVacios.irregularidad && (
-  <p className="text-xs text-red-600 mt-1">
-    {validacionCampos.camposVacios.irregularidad}
-  </p>
-)}
-          {datosProyecto.irregularidad >= 40 && (
-            <p className="text-sm text-amber-600 mt-1">
-              ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIVE
-            </p>
-          )}
-        </div>
+        
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Irregularidad
+  </label>
+  <select
+    ref={(el) => inputRefs.current['irregularidad'] = el}
+    value={datosProyecto.irregularidad}
+    onChange={(e) => handleDatosChange('irregularidad', e.target.value)}
+    onKeyDown={(e) => handleKeyDown(e, 'irregularidad', obtenerSiguienteCampo('irregularidad'))}
+    className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
+      validacionCampos?.camposVacios.irregularidad
+        ? 'border-red-400 bg-red-50'
+        : 'border-gray-300'
+    }`}
+  >
+    <option value="">Seleccione...</option>
+    
+    {/* Opciones específicas para Mampostería */}
+    {sistemaSeleccionado === 'mamposteria_formaleta' ? (
+  <>
+    <option value="0">0% - Sin irregularidad</option>
+    <option value="39">1% - 40% - Irregularidad baja a moderada</option>
+    <option value="100">Mayor a 40% - Irregularidad alta</option>
+  </>
+    ) : (
+      /* Opciones para otros sistemas */
+      <>
+        <option value="0">0% - Regular</option>
+        <option value="20">20% - Irregularidad baja</option>
+        <option value="40">40% - Irregularidad moderada</option>
+        <option value="60">60% - Irregularidad alta</option>
+        <option value="80">80% - Irregularidad muy alta</option>
+        <option value="100">100% - Irregularidad máxima</option>
+      </>
+    )}
+  </select>
+  
+  {validacionCampos?.camposVacios.irregularidad && (
+    <p className="text-xs text-red-600 mt-1">
+      {validacionCampos.camposVacios.irregularidad}
+    </p>
+  )}
+  {datosProyecto.irregularidad >= 40 && !validacionCampos?.camposVacios.irregularidad && (
+    <p className="text-sm text-amber-600 mt-1">
+      ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIBE
+    </p>
+  )}
+</div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

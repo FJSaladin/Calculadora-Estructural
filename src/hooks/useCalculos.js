@@ -2,7 +2,17 @@ import { useMemo } from 'react';
 import { tarifas } from '../data/tarifas';
 import { calcularAreaTotal, encontrarIrregularidad } from '../utils/helpers';
 
-// Función para determinar tamaño del proyecto según área y irregularidad
+// Función para obtener tarifa según rango de irregularidad (solo mampostería)
+function obtenerTarifaMamposteria(irregularidad) {
+  if (irregularidad === 0) {
+    return tarifas.mamposteria_formaleta.irregularidad[0];
+  } else if (irregularidad > 0 && irregularidad <= 40) {  // ← CAMBIAR A 40
+    return tarifas.mamposteria_formaleta.irregularidad[39];
+  } else { // > 40
+    return tarifas.mamposteria_formaleta.irregularidad[100];
+  }
+}
+
 // Función para determinar tamaño del proyecto según área y irregularidad
 function determinarTamanoProyecto(area, irregularidad) {
   let tamanoBase;
@@ -48,7 +58,7 @@ function calcularGestionDictamen(tamanoProyecto) {
   return costos[tamanoProyecto] || 20000;
 }
 
-export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVE, esValido) {
+export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIBE, esValido) {
   return useMemo(() => {
     const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
     
@@ -77,7 +87,7 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVE, esV
 
     // Cálculo según sistema
     if (sistemaSeleccionado === 'mamposteria_formaleta') {
-      const config = tarifas.mamposteria_formaleta.irregularidad[irregularidad];
+      const config = obtenerTarifaMamposteria(irregularidad);
       
       // Planos
       resultado.totalPlanos = config.planos * numPlanchas;
@@ -181,14 +191,14 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVE, esV
       });
     }
 
-    // Gestión del MIVE
-    if (gestionMIVE) {
+    // Gestión del MIBE
+    if (gestionMIBE) {
       // Memoria de cálculo (20,000 para sistema dual metálico, 15,000 para el resto)
       const costoMemoria = sistemaSeleccionado === 'sistema_dual_metalico' ? 20000 : 15000;
       resultado.memoria = costoMemoria;
       resultado.detalles.push({
         concepto: 'Memoria de cálculo',
-        detalle: '',
+        detalle: 'Servicio MIBE',
         monto: costoMemoria
       });
 
@@ -207,5 +217,5 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVE, esV
                         resultado.gestionDictamen;
 
     return resultado;
-  }, [sistemaSeleccionado, datosProyecto, gestionMIVE, esValido]);
+  }, [sistemaSeleccionado, datosProyecto, gestionMIBE, esValido]);
 }

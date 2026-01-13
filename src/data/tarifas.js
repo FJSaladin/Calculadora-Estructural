@@ -3,14 +3,12 @@ export const tarifas = {
     nombre: "Mampostería con Formaleta",
     max_niveles: 5,
     irregularidad: {
-      0: { planos: 5000, modelo_m2: 45 },
-      20: { planos: 5000, modelo_m2: 45 },
-      40: { planos: 6000, modelo_m2: 55 },
-      60: { planos: 6000, modelo_m2: 55 },
-      80: { planos: 8000, modelo_m2: 75 },
-      100: { planos: 8000, modelo_m2: 75 }
+      0: { planos: 5000, modelo_m2: 45 },    // 0%
+      39: { planos: 6000, modelo_m2: 55 },   // Hasta 40%
+      100: { planos: 8000, modelo_m2: 75 }   // Más de 40% (usamos 100 como tope)
     }
   },
+
   porticos_intermedios_hormigon: {
     nombre: "Pórticos Intermedios de Hormigón",
     max_niveles: 12,
