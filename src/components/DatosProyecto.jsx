@@ -486,7 +486,7 @@ function DatosProyecto({
   )}
   {datosProyecto.irregularidad >= 40 && !validacionCampos?.camposVacios.irregularidad && (
     <p className="text-sm text-amber-600 mt-1">
-      ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIBE
+      ⚠️ Irregularidad ≥40% eleva el tamaño del proyecto en la gestión del MIVED
     </p>
   )}
 </div>
