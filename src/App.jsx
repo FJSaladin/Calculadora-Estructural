@@ -25,6 +25,23 @@ function App() {
   });
   const [gestionMIVED, setGestionMIVED] = useState(false);
 
+  const handleSistemaChange = (nuevoSistema) => {
+    setSistemaSeleccionado(nuevoSistema);
+    setDatosProyecto({
+      niveles: '',
+      areasNiveles: {},
+      alturasNiveles: {},
+      irregularidad: '',
+      continuidad: '1',
+      zona: '',
+      alturaNivel: '',
+      numPlanchas: '',
+      tipoDual: 'intermedia',
+      tipoMetalico: 'porticos_arriostramiento',
+    });
+    setGestionMIVED(false);
+  }; 
+
   const validaciones = useValidaciones(sistemaSeleccionado, datosProyecto);
   const validacionCampos = useValidacionCampos(sistemaSeleccionado, datosProyecto);
   const calculos = useCalculos(
@@ -43,7 +60,7 @@ function App() {
           <div className="space-y-6">
             <SistemaSelector 
               sistemaSeleccionado={sistemaSeleccionado}
-              setSistemaSeleccionado={setSistemaSeleccionado}
+              setSistemaSeleccionado={handleSistemaChange}
             />
 
             {sistemaSeleccionado && (
