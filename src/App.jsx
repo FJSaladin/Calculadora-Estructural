@@ -89,6 +89,7 @@ function App() {
             <ResultadosCostos
               sistemaSeleccionado={sistemaSeleccionado}
               calculos={calculos}
+              validaciones={validaciones} 
             />
           </div>
         </div>

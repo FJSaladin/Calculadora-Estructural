@@ -1,7 +1,7 @@
 import React from 'react';
-import { CheckCircle2, Calculator, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Calculator, AlertCircle, XCircle } from 'lucide-react';
 
-function ResultadosCostos({ sistemaSeleccionado, calculos }) {
+function ResultadosCostos({ sistemaSeleccionado, calculos, validaciones }) {
   if (!sistemaSeleccionado) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-12 text-center">
@@ -13,6 +13,22 @@ function ResultadosCostos({ sistemaSeleccionado, calculos }) {
     );
   }
 
+  // Error de validación de negocio (límites excedidos, zona incorrecta)
+  if (!validaciones.valido) {
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+        <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+        <p className="text-red-700 text-lg font-semibold mb-2">
+          El diseño tiene errores que impiden el cálculo
+        </p>
+        <p className="text-gray-500 text-sm">
+          Revise los errores marcados en rojo antes de continuar
+        </p>
+      </div>
+    );
+  }
+
+  // Campos incompletos
   if (!calculos) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-12 text-center">
