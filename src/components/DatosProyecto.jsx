@@ -460,7 +460,7 @@ function DatosProyecto({
     {sistemaSeleccionado === 'mamposteria_formaleta' ? (
   <>
     <option value="0">0% - Sin irregularidad</option>
-    <option value="39">1% - 40% - Irregularidad baja a moderada</option>
+    <option value="40">1% - 40% - Irregularidad baja a moderada</option>
     <option value="100">Mayor a 40% - Irregularidad alta</option>
   </>
     ) : (

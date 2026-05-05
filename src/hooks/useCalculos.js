@@ -6,7 +6,7 @@ import { calcularAreaTotal, encontrarIrregularidad } from '../utils/helpers';
 function obtenerTarifaMamposteria(irregularidad) {
   if (irregularidad === 0) {
     return tarifas.mamposteria_formaleta.irregularidad[0];
-  } else if (irregularidad > 0 && irregularidad <= 40) {  // ← CAMBIAR A 40
+  } else if (irregularidad <= 40) {  // ← CAMBIAR A 40
     return tarifas.mamposteria_formaleta.irregularidad[39];
   } else { // > 40
     return tarifas.mamposteria_formaleta.irregularidad[100];
