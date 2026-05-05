@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import SistemaSelector from './components/SistemaSelector';
 import DatosProyecto from './components/DatosProyecto';
@@ -24,6 +24,23 @@ function App() {
     tipoMetalico: 'porticos_arriostramiento',
   });
   const [gestionMIVED, setGestionMIVED] = useState(false);
+// Cargar datos guardados al iniciar
+  useEffect(() => {
+    const sistemaGuardado = localStorage.getItem('shizzo_sistema');
+    const datosGuardados = localStorage.getItem('shizzo_datos');
+    const mivedGuardado = localStorage.getItem('shizzo_mived');
+
+    if (sistemaGuardado) setSistemaSeleccionado(sistemaGuardado);
+    if (datosGuardados) setDatosProyecto(JSON.parse(datosGuardados));
+    if (mivedGuardado) setGestionMIVED(JSON.parse(mivedGuardado));
+  }, []);
+
+  // Guardar cada vez que cambia algo
+  useEffect(() => {
+    localStorage.setItem('shizzo_sistema', sistemaSeleccionado);
+    localStorage.setItem('shizzo_datos', JSON.stringify(datosProyecto));
+    localStorage.setItem('shizzo_mived', JSON.stringify(gestionMIVED));
+  }, [sistemaSeleccionado, datosProyecto, gestionMIVED]);
 
   const handleSistemaChange = (nuevoSistema) => {
     setSistemaSeleccionado(nuevoSistema);
