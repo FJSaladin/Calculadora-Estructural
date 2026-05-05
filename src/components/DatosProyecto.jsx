@@ -59,10 +59,7 @@ function DatosProyecto({
         return { max: 4, mensaje: 'Pórticos intermedios de acero están limitados a 4 niveles máximo' };
       
       case 'porticos_especiales_acero':
-        if (zona !== 1) {
-          return { max: 0, mensaje: 'Pórticos especiales de acero solo están permitidos en zona 1' };
-        }
-        return null; // Sin límite de niveles si está en zona 1
+        return null; // Sin límite de niveles en ambas zonas 
       
       case 'sistema_dual_metalico':
         const maxDualMetalico = zona === 1 ? 4 : 6;
@@ -85,10 +82,10 @@ function DatosProyecto({
     if (sistemaSeleccionado === 'porticos_intermedios_acero' && zona !== 2) {
       return 'Pórticos intermedios de acero solo permitidos en zona 2';
     }
-    
-    if (sistemaSeleccionado === 'porticos_especiales_acero' && zona !== 1) {
-      return 'Pórticos especiales de acero solo permitidos en zona 1';
-    }
+
+    // Especiales de acero se permiten en AMBAS zonas
+    // zona 1 tiene límite de 50m (se valida por altura, no por zona)
+    // zona 2 no tiene límite
     
     return null;
   };
