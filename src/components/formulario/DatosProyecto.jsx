@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Building2, AlertTriangle } from 'lucide-react';
-import { calcularAreaTotal } from '../utils/helpers';
-import { tarifas } from '../data/tarifas';
+import { calcularAreaTotal } from '../../utils/helpers';
+import { tarifas } from '../../data/tarifas';
 
 function DatosProyecto({ 
   sistemaSeleccionado, 

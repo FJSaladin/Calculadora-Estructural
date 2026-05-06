@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import SistemaSelector from './components/SistemaSelector';
-import DatosProyecto from './components/DatosProyecto';
-import ServiciosMIVED from './components/ServiciosMIVED';
-import Validaciones from './components/Validaciones';
-import ResultadosCostos from './components/ResultadosCostos';
+import Header from './components/layout/Header';
+import SistemaSelector from './components/sistema/SistemaSelector';
+import DatosProyecto from './components/formulario/DatosProyecto';
+import ServiciosMIVED from './components/formulario/ServiciosMIVED';
+import Validaciones from './components/resultados/Validaciones';
+import ResultadosCostos from './components/resultados/ResultadosCostos';
 import { useValidaciones } from './hooks/useValidaciones';
 import { useValidacionCampos } from './hooks/useValidacionCampos';
 import { useCalculos } from './hooks/useCalculos';
