@@ -2,12 +2,13 @@ import React, { useRef } from 'react';
 import { Building2, AlertTriangle } from 'lucide-react';
 import { calcularAreaTotal } from '../../utils/helpers';
 import { tarifas } from '../../data/tarifas';
+import CamposNiveles from './CamposNiveles';
 
 function DatosProyecto({ 
   sistemaSeleccionado, 
   datosProyecto, 
   setDatosProyecto, 
-  validacionCampos  // AGREGAR
+  validacionCampos  
 }) {
   const inputRefs = useRef({});
 
@@ -329,113 +330,21 @@ function DatosProyecto({
 
         {/* Solo mostrar campos si no excede el límite */}
         {niveles > 0 && !excedeLimite && (
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-              {requiereAlturaPorNivel ? 'Área y Altura por nivel' : 'Área por nivel (m²)'}
-            </label>
-            {Array.from({ length: niveles }, (_, i) => i + 1).map(nivel => (
-              <div key={nivel}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm text-gray-600 w-20 font-medium">Nivel {nivel}:</span>
-                </div>
-                <div className={`flex gap-2 ${requiereAlturaPorNivel ? 'grid grid-cols-2' : ''}`}>
-                  <div className="flex-1">
-                    <input
-                      type="number"
-                      ref={(el) => inputRefs.current[`area-${nivel}`] = el}
-                      value={datosProyecto.areasNiveles[nivel] || ''}
-                      onChange={(e) => handleAreaNivelChange(nivel, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, `area-${nivel}`, obtenerSiguienteCampo(`area-${nivel}`))}
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                      placeholder="Área (m²)"
-                      step="0.01"
-                      min="0"
-                    />
-                    {validacionCampos?.camposVacios[`area-${nivel}`] && (
-  <p className="text-xs text-red-600 mt-1">
-    {validacionCampos.camposVacios[`area-${nivel}`]}
-  </p>
-)}
-                  </div>
-                  {requiereAlturaPorNivel && (
-                    <div className="flex-1">
-                      <input
-                        type="number"
-                        ref={(el) => inputRefs.current[`altura-${nivel}`] = el}
-                        value={datosProyecto.alturasNiveles?.[nivel] || ''}
-                        onChange={(e) => handleAlturaNivelChange(nivel, e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(e, `altura-${nivel}`, obtenerSiguienteCampo(`altura-${nivel}`))}
-                        disabled={debeDeshabilitarAltura(nivel)}
-                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 ${
-                          debeDeshabilitarAltura(nivel) 
-                            ? 'bg-gray-100 cursor-not-allowed border-gray-300' 
-                            : 'border-gray-300'
-                        }`}
-                        placeholder="Altura (m)"
-                        step="0.1"
-                        min="0"
-                      />
-                      {validacionCampos?.camposVacios[`altura-${nivel}`] && (
-  <p className="text-xs text-red-600 mt-1">
-    {validacionCampos.camposVacios[`altura-${nivel}`]}
-  </p>
-)}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div className="pt-2 border-t border-gray-200 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-700">Área total:</span>
-                <span className="font-bold text-indigo-600 text-lg">
-                  {areaTotal.toFixed(2)} m²
-                </span>
-              </div>
-              {requiereAlturaPorNivel && (
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">Altura total:</span>
-                  <span className="font-bold text-indigo-600 text-lg">
-                    {alturaTotal.toFixed(2)} m
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Alerta cuando se excede la altura permitida */}
-            {requiereAlturaPorNivel && estadoAltura.excedido && (
-              <div className="mt-3 bg-red-50 border-l-4 border-red-500 p-3 rounded">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-semibold text-red-700">
-                      Límite de altura excedido
-                    </p>
-                    {estadoAltura.tipo === 'total' && (
-                      <>
-                        <p className="text-sm text-red-600 mt-1">
-                          Altura acumulada al nivel {estadoAltura.nivelExcedido}: {estadoAltura.alturaAcum.toFixed(2)}m
-                        </p>
-                        <p className="text-xs text-red-500 mt-1">
-                          Límite máximo para zona 1: {estadoAltura.limite}m. Los campos posteriores han sido deshabilitados.
-                        </p>
-                      </>
-                    )}
-                    {estadoAltura.tipo === 'individual' && (
-                      <>
-                        <p className="text-sm text-red-600 mt-1">
-                          Nivel {estadoAltura.nivelExcedido}: {estadoAltura.alturaIndividual.toFixed(2)}m
-                        </p>
-                        <p className="text-xs text-red-500 mt-1">
-                          Límite máximo por nivel: {estadoAltura.limite}m. Los campos posteriores han sido deshabilitados.
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          <CamposNiveles
+            niveles={niveles}
+            sistemaSeleccionado={sistemaSeleccionado}
+            datosProyecto={datosProyecto}
+            validacionCampos={validacionCampos}
+            estadoAltura={estadoAltura}
+            requiereAlturaPorNivel={requiereAlturaPorNivel}
+            areaTotal={areaTotal}
+            alturaTotal={alturaTotal}
+            inputRefs={inputRefs}
+            obtenerSiguienteCampo={obtenerSiguienteCampo}
+            handleAreaNivelChange={handleAreaNivelChange}
+            handleAlturaNivelChange={handleAlturaNivelChange}
+            debeDeshabilitarAltura={debeDeshabilitarAltura}
+          />
         )}
 
         
