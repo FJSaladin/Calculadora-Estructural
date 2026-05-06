@@ -1,21 +1,27 @@
 import { useMemo } from 'react';
+import { sistemas } from '../systems';
 
 export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
   return useMemo(() => {
     const camposVacios = {};
-    
+
     if (!sistemaSeleccionado) {
       return { todosCompletos: false, camposVacios };
     }
 
+    const sistema = sistemas[sistemaSeleccionado];
+    if (!sistema) {
+      return { todosCompletos: false, camposVacios };
+    }
+
     const niveles = parseInt(datosProyecto.niveles) || 0;
-    
-    // Validar número de niveles
+
+    // Número de niveles
     if (!datosProyecto.niveles || niveles === 0) {
       camposVacios.niveles = 'Debe ingresar el número de niveles';
     }
-    
-    // Validar áreas por nivel
+
+    // Áreas por nivel
     if (niveles > 0) {
       for (let i = 1; i <= niveles; i++) {
         const area = datosProyecto.areasNiveles[i];
@@ -24,12 +30,9 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
         }
       }
     }
-    
-    // Validar alturas por nivel (si aplica)
-    const requiereAltura = sistemaSeleccionado === 'porticos_intermedios_acero' || 
-                           sistemaSeleccionado === 'porticos_especiales_acero';
-    
-    if (requiereAltura && niveles > 0) {
+
+    // Alturas por nivel (si el sistema lo requiere)
+    if (sistema.requiereAltura && niveles > 0) {
       for (let i = 1; i <= niveles; i++) {
         const altura = datosProyecto.alturasNiveles?.[i];
         if (!altura || parseFloat(altura) === 0) {
@@ -37,29 +40,24 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
         }
       }
     }
-    
-    // Validar irregularidad
+
+    // Irregularidad
     if (!datosProyecto.irregularidad && datosProyecto.irregularidad !== '0') {
       camposVacios.irregularidad = 'Debe seleccionar la irregularidad';
     }
-    
-    // Validar número de planchas
+
+    // Número de planchas
     if (!datosProyecto.numPlanchas || parseInt(datosProyecto.numPlanchas) === 0) {
       camposVacios.numPlanchas = 'Debe ingresar el número de planchas';
     }
-    
-    // Validar zona sísmica (si aplica)
-    const requiereZona = sistemaSeleccionado === 'sistema_dual_hormigon' || 
-                         sistemaSeleccionado === 'sistema_dual_metalico' ||
-                         sistemaSeleccionado === 'porticos_intermedios_acero' ||
-                         sistemaSeleccionado === 'porticos_especiales_acero';
-    
-    if (requiereZona && !datosProyecto.zona) {
+
+    // Zona sísmica (si el sistema lo requiere)
+    if (sistema.requiereZona && !datosProyecto.zona) {
       camposVacios.zona = 'Debe seleccionar la zona sísmica';
     }
-    
+
     const todosCompletos = Object.keys(camposVacios).length === 0;
-    
+
     return { todosCompletos, camposVacios };
   }, [sistemaSeleccionado, datosProyecto]);
 }
