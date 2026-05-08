@@ -5,16 +5,18 @@ import DatosProyecto from './components/formulario/DatosProyecto';
 import ServiciosMIVED from './components/formulario/ServiciosMIVED';
 import Validaciones from './components/resultados/Validaciones';
 import ResultadosCostos from './components/resultados/ResultadosCostos';
+import PanelConfiguracion from './components/configuration/Panelconfiguracion';
 import { useValidaciones } from './hooks/useValidaciones';
 import { useValidacionCampos } from './hooks/useValidacionCampos';
 import { useCalculos } from './hooks/useCalculos';
+import { useTarifasConfig } from './hooks/useTarifasConfig';
 
 function App() {
   const [sistemaSeleccionado, setSistemaSeleccionado] = useState('');
   const [datosProyecto, setDatosProyecto] = useState({
     niveles: '',
     areasNiveles: {},
-    alturasNiveles: {}, 
+    alturasNiveles: {},
     irregularidad: '',
     continuidad: '1',
     zona: '1',
@@ -24,18 +26,28 @@ function App() {
     tipoMetalico: 'porticos_arriostramiento',
   });
   const [gestionMIVED, setGestionMIVED] = useState(false);
-// Cargar datos guardados al iniciar
+
+  // ── Configuración de tarifas ─────────────────────────────────────────────
+  const {
+    sistemas,
+    historial,
+    actualizarTarifa,
+    confirmarCambios,
+    resetearSistema,
+    resetearTodo,
+    tieneOverrides,
+  } = useTarifasConfig();
+
+  // ── Persistencia básica ──────────────────────────────────────────────────
   useEffect(() => {
     const sistemaGuardado = localStorage.getItem('shizzo_sistema');
-    const datosGuardados = localStorage.getItem('shizzo_datos');
-    const mivedGuardado = localStorage.getItem('shizzo_mived');
-
+    const datosGuardados  = localStorage.getItem('shizzo_datos');
+    const mivedGuardado   = localStorage.getItem('shizzo_mived');
     if (sistemaGuardado) setSistemaSeleccionado(sistemaGuardado);
-    if (datosGuardados) setDatosProyecto(JSON.parse(datosGuardados));
-    if (mivedGuardado) setGestionMIVED(JSON.parse(mivedGuardado));
+    if (datosGuardados)  setDatosProyecto(JSON.parse(datosGuardados));
+    if (mivedGuardado)   setGestionMIVED(JSON.parse(mivedGuardado));
   }, []);
 
-  // Guardar cada vez que cambia algo
   useEffect(() => {
     localStorage.setItem('shizzo_sistema', sistemaSeleccionado);
     localStorage.setItem('shizzo_datos', JSON.stringify(datosProyecto));
@@ -57,25 +69,40 @@ function App() {
       tipoMetalico: 'porticos_arriostramiento',
     });
     setGestionMIVED(false);
-  }; 
+  };
 
-  const validaciones = useValidaciones(sistemaSeleccionado, datosProyecto);
-  const validacionCampos = useValidacionCampos(sistemaSeleccionado, datosProyecto);
-  const calculos = useCalculos(
-    sistemaSeleccionado, 
-    datosProyecto, 
-    gestionMIVED, 
-    validaciones.valido && validacionCampos.todosCompletos
+  // ── Hooks de validación y cálculo ────────────────────────────────────────
+  // Pasamos 'sistemas' (con overrides) en lugar del objeto estático
+  const validaciones     = useValidaciones(sistemaSeleccionado, datosProyecto, sistemas);
+  const validacionCampos = useValidacionCampos(sistemaSeleccionado, datosProyecto, sistemas);
+  const calculos         = useCalculos(
+    sistemaSeleccionado,
+    datosProyecto,
+    gestionMIVED,
+    validaciones.valido && validacionCampos.todosCompletos,
+    sistemas,  // ← cálculos usan las tarifas con overrides
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto">
-        <Header />
-        
+        <Header
+          accionesExtra={
+            <PanelConfiguracion
+              sistemas={sistemas}
+              historial={historial}
+              actualizarTarifa={actualizarTarifa}
+              confirmarCambios={confirmarCambios}
+              resetearSistema={resetearSistema}
+              resetearTodo={resetearTodo}
+              tieneOverrides={tieneOverrides}
+            />
+          }
+        />
+
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-6 no-print">
-            <SistemaSelector 
+            <SistemaSelector
               sistemaSeleccionado={sistemaSeleccionado}
               setSistemaSeleccionado={handleSistemaChange}
             />
@@ -87,8 +114,9 @@ function App() {
                   datosProyecto={datosProyecto}
                   setDatosProyecto={setDatosProyecto}
                   validacionCampos={validacionCampos}
+                  sistemas={sistemas}
                 />
-                
+
                 <ServiciosMIVED
                   gestionMIVED={gestionMIVED}
                   setGestionMIVED={setGestionMIVED}
@@ -98,15 +126,15 @@ function App() {
           </div>
 
           <div className="space-y-6">
-            <Validaciones 
+            <Validaciones
               sistemaSeleccionado={sistemaSeleccionado}
               validaciones={validaciones}
             />
-            
+
             <ResultadosCostos
               sistemaSeleccionado={sistemaSeleccionado}
               calculos={calculos}
-              validaciones={validaciones} 
+              validaciones={validaciones}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { sistemas } from '../systems';
+import { sistemas as sistemasBase } from '../systems';
 
-export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
+export function useValidacionCampos(sistemaSeleccionado, datosProyecto, sistemasConOverrides) {
   return useMemo(() => {
     const camposVacios = {};
 
@@ -9,19 +9,18 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
       return { todosCompletos: false, camposVacios };
     }
 
-    const sistema = sistemas[sistemaSeleccionado];
+    const sistemasActivos = sistemasConOverrides || sistemasBase;
+    const sistema = sistemasActivos[sistemaSeleccionado];
     if (!sistema) {
       return { todosCompletos: false, camposVacios };
     }
 
     const niveles = parseInt(datosProyecto.niveles) || 0;
 
-    // Número de niveles
     if (!datosProyecto.niveles || niveles === 0) {
       camposVacios.niveles = 'Debe ingresar el número de niveles';
     }
 
-    // Áreas por nivel
     if (niveles > 0) {
       for (let i = 1; i <= niveles; i++) {
         const area = datosProyecto.areasNiveles[i];
@@ -31,7 +30,6 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
       }
     }
 
-    // Alturas por nivel (si el sistema lo requiere)
     if (sistema.requiereAltura && niveles > 0) {
       for (let i = 1; i <= niveles; i++) {
         const altura = datosProyecto.alturasNiveles?.[i];
@@ -41,17 +39,14 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
       }
     }
 
-    // Irregularidad
     if (!datosProyecto.irregularidad && datosProyecto.irregularidad !== '0') {
       camposVacios.irregularidad = 'Debe seleccionar la irregularidad';
     }
 
-    // Número de planchas
     if (!datosProyecto.numPlanchas || parseInt(datosProyecto.numPlanchas) === 0) {
       camposVacios.numPlanchas = 'Debe ingresar el número de planchas';
     }
 
-    // Zona sísmica (si el sistema lo requiere)
     if (sistema.requiereZona && !datosProyecto.zona) {
       camposVacios.zona = 'Debe seleccionar la zona sísmica';
     }
@@ -59,5 +54,5 @@ export function useValidacionCampos(sistemaSeleccionado, datosProyecto) {
     const todosCompletos = Object.keys(camposVacios).length === 0;
 
     return { todosCompletos, camposVacios };
-  }, [sistemaSeleccionado, datosProyecto]);
+  }, [sistemaSeleccionado, datosProyecto, sistemasConOverrides]);
 }

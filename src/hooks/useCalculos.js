@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { sistemas } from '../systems';
+import { sistemas as sistemasBase } from '../systems';
 import { calcularAreaTotal } from '../utils/helpers';
 
 function determinarTamanoProyecto(area, irregularidad) {
@@ -39,11 +39,17 @@ function calcularGestionDictamen(tamano) {
   return costos[tamano] || 20000;
 }
 
-export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVED, esValido) {
+/**
+ * @param sistemasConOverrides - objeto sistemas con tarifas ya aplicadas.
+ *   Si no se pasa, cae al objeto estático original (compatibilidad hacia atrás).
+ */
+export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVED, esValido, sistemasConOverrides) {
   return useMemo(() => {
     if (!sistemaSeleccionado || !esValido) return null;
 
-    const sistema = sistemas[sistemaSeleccionado];
+    // Usa overrides si se pasan, si no el objeto base (compatibilidad)
+    const sistemasActivos = sistemasConOverrides || sistemasBase;
+    const sistema = sistemasActivos[sistemaSeleccionado];
     if (!sistema) return null;
 
     const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
@@ -52,11 +58,12 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVED, es
     const irregularidad = parseInt(datosProyecto.irregularidad) || 0;
     const tamanoProyecto = determinarTamanoProyecto(areaTotal, irregularidad);
 
-    // Cálculo delegado al sistema
+    // Cálculo delegado al sistema (con tarifas modificadas)
     const detalles = sistema.calcular(datosProyecto, areaTotal);
 
     // Servicios MIVED
     if (gestionMIVED) {
+      // memoriaCalculo también puede ser override
       const costoMemoria = sistema.memoriaCalculo || 15000;
       detalles.push({
         concepto: 'Memoria de cálculo',
@@ -79,5 +86,5 @@ export function useCalculos(sistemaSeleccionado, datosProyecto, gestionMIVED, es
       subtotal,
       tamanoProyecto,
     };
-  }, [sistemaSeleccionado, datosProyecto, gestionMIVED, esValido]);
+  }, [sistemaSeleccionado, datosProyecto, gestionMIVED, esValido, sistemasConOverrides]);
 }

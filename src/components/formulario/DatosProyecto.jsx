@@ -1,49 +1,46 @@
 import React, { useRef } from 'react';
 import { Building2, AlertTriangle } from 'lucide-react';
 import { calcularAreaTotal } from '../../utils/helpers';
-import { sistemas } from '../../systems';
+import { sistemas as sistemasBase } from '../../systems';
 import CamposNiveles from './CamposNiveles';
 
 function DatosProyecto({
   sistemaSeleccionado,
   datosProyecto,
   setDatosProyecto,
-  validacionCampos
+  validacionCampos,
+  sistemas: sistemasConOverrides, // ← recibe el objeto con overrides
 }) {
   const inputRefs = useRef({});
-  const sistema = sistemas[sistemaSeleccionado];
+
+  // Usa overrides si disponible, si no el base
+  const sistemasActivos = sistemasConOverrides || sistemasBase;
+  const sistema = sistemasActivos[sistemaSeleccionado];
 
   const areaTotal = calcularAreaTotal(datosProyecto.areasNiveles);
   const niveles = parseInt(datosProyecto.niveles) || 0;
   const requiereAlturaPorNivel = sistema?.requiereAltura || false;
   const requiereZona = sistema?.requiereZona || false;
 
-  // Altura total acumulada
   const alturaTotal = React.useMemo(() => {
     return Object.values(datosProyecto.alturasNiveles || {}).reduce((sum, h) => {
       return sum + (parseFloat(h) || 0);
     }, 0);
   }, [datosProyecto.alturasNiveles]);
 
-  // Límite de niveles según sistema y zona
   const obtenerLimiteNiveles = () => {
     if (!sistema) return null;
-
     const zona = parseInt(datosProyecto.zona) || 1;
-
     if (sistema.maxNivelesPorZona) {
       const max = sistema.maxNivelesPorZona[zona] || 4;
       return { max, mensaje: `${sistema.nombre} en zona ${zona} está limitado a ${max} niveles máximo` };
     }
-
     if (sistema.maxNiveles) {
       return { max: sistema.maxNiveles, mensaje: `${sistema.nombre} está limitado a ${sistema.maxNiveles} niveles máximo` };
     }
-
     return null;
   };
 
-  // Error de zona
   const obtenerErrorZona = () => {
     if (!sistema?.zonaPermitida || !datosProyecto.zona) return null;
     const zona = parseInt(datosProyecto.zona);
@@ -53,10 +50,8 @@ function DatosProyecto({
     return null;
   };
 
-  // Estado de altura para sistemas de acero
   const obtenerEstadoAltura = () => {
     const zona = parseInt(datosProyecto.zona) || 1;
-
     if (sistemaSeleccionado === 'porticos_especiales_acero' && zona === 1) {
       const LIMITE = 50;
       let acum = 0;
@@ -67,7 +62,6 @@ function DatosProyecto({
         }
       }
     }
-
     if (sistemaSeleccionado === 'porticos_intermedios_acero') {
       const LIMITE = 3;
       for (let i = 1; i <= niveles; i++) {
@@ -77,7 +71,6 @@ function DatosProyecto({
         }
       }
     }
-
     return { excedido: false, nivelExcedido: null, tipo: null };
   };
 
@@ -102,7 +95,6 @@ function DatosProyecto({
   const errorZona = obtenerErrorZona();
   const estadoAltura = obtenerEstadoAltura();
 
-  // Secuencia de campos para navegación por teclado
   const generarSecuenciaCampos = () => {
     const secuencia = ['niveles'];
     if (niveles > 0 && !excedeLimite) {
@@ -135,7 +127,6 @@ function DatosProyecto({
   const handleNivelesChange = (valor) => {
     const valorValidado = validarNumeroPositivo(valor);
     const nivelesNum = parseInt(valorValidado) || 0;
-
     setDatosProyecto(prev => {
       const nuevasAreas = {};
       const nuevasAlturas = {};
@@ -178,7 +169,6 @@ function DatosProyecto({
       </h3>
 
       <div className="space-y-4">
-
         {/* Número de niveles */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -204,7 +194,6 @@ function DatosProyecto({
           )}
         </div>
 
-        {/* Alerta límite excedido */}
         {excedeLimite && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <div className="flex items-start gap-2">
@@ -217,7 +206,6 @@ function DatosProyecto({
           </div>
         )}
 
-        {/* Campos por nivel */}
         {niveles > 0 && !excedeLimite && (
           <CamposNiveles
             niveles={niveles}
@@ -365,7 +353,6 @@ function DatosProyecto({
             </select>
           </div>
         )}
-
       </div>
     </div>
   );

@@ -1,18 +1,19 @@
 import { useMemo } from 'react';
-import { sistemas } from '../systems';
+import { sistemas as sistemasBase } from '../systems';
 
-export function useValidaciones(sistemaSeleccionado, datosProyecto) {
+export function useValidaciones(sistemaSeleccionado, datosProyecto, sistemasConOverrides) {
   return useMemo(() => {
     if (!sistemaSeleccionado) {
       return { errores: [], advertencias: [], valido: true };
     }
 
-    const sistema = sistemas[sistemaSeleccionado];
+    const sistemasActivos = sistemasConOverrides || sistemasBase;
+    const sistema = sistemasActivos[sistemaSeleccionado];
     if (!sistema) {
       return { errores: [], advertencias: [], valido: true };
     }
 
-    const errores = sistema.validar(datosProyecto);
+    const errores     = sistema.validar(datosProyecto);
     const advertencias = sistema.advertencias(datosProyecto);
 
     return {
@@ -20,5 +21,5 @@ export function useValidaciones(sistemaSeleccionado, datosProyecto) {
       advertencias,
       valido: errores.length === 0
     };
-  }, [sistemaSeleccionado, datosProyecto]);
+  }, [sistemaSeleccionado, datosProyecto, sistemasConOverrides]);
 }
