@@ -1,5 +1,5 @@
 import React from 'react';
-import TarifaInput from './TarifaInput';
+import TarifaInput from './TarifaInputs';
 import { sistemas as sistemasBase } from '../../systems';
 import { extraerTarifasBase } from '../../hooks/useTarifasConfig';
 
