@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, X, RotateCcw, Save, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import TablaTarifas from './TablaTarifas';
+
 import HistorialCambios from './HistorialCambios';
 import { sistemas as sistemasBase } from '../../systems';
 
