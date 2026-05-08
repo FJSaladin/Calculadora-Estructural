@@ -5,7 +5,7 @@ import DatosProyecto from './components/formulario/DatosProyecto';
 import ServiciosMIVED from './components/formulario/ServiciosMIVED';
 import Validaciones from './components/resultados/Validaciones';
 import ResultadosCostos from './components/resultados/ResultadosCostos';
-import PanelConfiguracion from './components/configuracion/PanelConfiguracion';
+import PanelConfiguracion from './components/configuration/PanelConfiguracion';
 import { useValidaciones } from './hooks/useValidaciones';
 import { useValidacionCampos } from './hooks/useValidacionCampos';
 import { useCalculos } from './hooks/useCalculos';
