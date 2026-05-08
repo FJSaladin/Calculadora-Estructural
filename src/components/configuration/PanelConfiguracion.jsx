@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, X, RotateCcw, Save, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import TablaTarifas from './TablaTarifa';
 
-import HistorialCambios from './HistorialCambios';
+import HistorialCambios from './HistorialCambio';
 import { sistemas as sistemasBase } from '../../systems';
 
 const SISTEMAS_ORDEN = [
